@@ -137,6 +137,32 @@ class TLTLFormula(object):
         elif self.op == Operation.NEXT:
             return self.child.robustness(s, t1+1, t2)
 
+    def to_ltl(self):
+        '''TODO:
+        '''
+
+        if self.op in (Operation.PRED, Operation.BOOL, Operation.AP):
+            return self
+        elif self.op == Operation.THEN:
+            phi1 = self.left.to_ltl()
+            phi2 = self.right.to_ltl()
+            XF_phi2 = TLTLFormula(Operation.NEXT,
+                                child=TLTLFormula(Operation.EVENT, child=phi2))
+            return TLTLFormula(Operation.EVENT,
+                               child=TLTLFormula(Operation.AND, left=phi1,
+                                                 right=XF_phi2))
+        elif self.op in (Operation.AND, Operation.OR, Operation.IMPLIES,
+                         Operation.UNTIL):
+            phi_l = self.left.to_ltl()
+            phi_r = self.right.to_ltl()
+            return TLTLFormula(self.op, left=phi_l, right=phi_r)
+        elif self.op in (Operation.NOT, Operation.ALWAYS, Operation.EVENT,
+                         Operation.NEXT):
+            phi_ch = self.child.to_ltl()
+            return TLTLFormula(self.op, child=phi_ch)
+        else:
+            raise ValueError('Unknown operation code!')
+
 #     def negate(self):
 #         '''TODO:
 #         '''
@@ -206,11 +232,11 @@ class TLTLFormula(object):
                                     rel=RelOperation.getString(self.relation))
         elif self.op in (Operation.AND, Operation.OR, Operation.IMPLIES,
                        Operation.UNTIL, Operation.THEN):
-            return '{left} {op} {right}'.format(left=self.left, op=opname,
+            return '({left} {op} {right})'.format(left=self.left, op=opname,
                                                 right=self.right)
         elif self.op in (Operation.NOT, Operation.ALWAYS, Operation.EVENT,
                          Operation.NEXT):
-            return '{op} {child}'.format(op=opname, child=self.child)
+            return '({op} {child})'.format(op=opname, child=self.child)
         return ''
 
 
@@ -293,7 +319,7 @@ class Trace(object):
         raise NotImplementedError
 
 if __name__ == '__main__':
-    lexer = tltlLexer(InputStream("!(x < 10) && F y > 2 || G z<=8 && y < 1 T x >= 3"))
+    lexer = tltlLexer(InputStream("!(x < 10) && F y > 2 || G z<=8 && (y < 1 T x >= 3)"))
     tokens = CommonTokenStream(lexer)
 
     parser = tltlParser(tokens)
@@ -303,6 +329,7 @@ if __name__ == '__main__':
     ast = TLTLAbstractSyntaxTreeExtractor().visit(t)
     print 'AST:', ast
     print ast.variables()
+    print 'LTL', ast.to_ltl()
 
     varnames = ['x', 'y', 'z']
     data = [[8, 8, 11, 11, 11], [2, 3, 1, 2, 2], [3, 9, 8, 9, 9]]
