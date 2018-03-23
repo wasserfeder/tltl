@@ -1,0 +1,70 @@
+<project name="Truncated Linear Temporal Logic" default="tltl" basedir=".">
+<!--
+# Copyright (C) 2018  Cristian Ioan Vasile <cvasile@mit.edu>
+# Laboratory for Information and Decision System (LIDS)
+# Computer Science and Artificial Intelligence Lab (CSAIL)
+# Massachusetts Institute of Technology
+# See license.txt file for license information.
+
+SRC_PATH=stl/
+ANTLR_PATH=lib/
+ANTLR=antlr-4.7.1-complete.jar
+-->
+    <description>
+        TODO:
+    </description>
+    <!-- set global properties for this build -->
+    <property name="src"   location="tltl" />
+    <property name="lib"   location="lib" />
+    <property name="dist"  location="dist" />
+    <property name="antlr" location="${lib}/antlr-4.7.1-complete.jar" />
+
+    <target name="init">
+        <!-- Create the time stamp -->
+        <tstamp>
+            <format property="DSTAMP" pattern="yyyy-MM-dd-HH-mm" locale="en,US"/>
+        </tstamp>
+    </target>
+
+    <target name="tltl" depends="clean"
+        description="create TLTL lexer and parser" >
+
+        <java classpath="${src}:${antlr}" classname="org.antlr.v4.Tool">
+              <arg value="-visitor" />
+              <arg value="-Dlanguage=Python2" />
+              <arg path="${src}/tltl.g4" />
+        </java>
+
+        <delete verbose="true">
+              <fileset dir="${src}/">
+                  <include name="*.tokens"/>
+                  <include name="*.interp"/>
+              </fileset>
+        </delete>
+    </target>
+
+    <target name="dist" depends="tltl,init" description="generate the distribution" >
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+
+        <!-- Put everything in stl-${DSTAMP}.zip archive file -->
+        <zip destfile="${dist}/stl-${DSTAMP}.zip"
+             basedir="."
+             excludes=".project, .pydevproject, dist/**, **/*.pyc, **/*.log"
+        />
+    </target>
+
+    <target name="clean" description="clean up" >
+        <delete verbose="true">
+            <fileset dir=".">
+                <include name="*.tokens"/>
+            </fileset>
+        </delete>
+        <delete verbose="true">
+            <fileset dir="${src}">
+                <include name="tltlLexer.py" />
+                <include name="tltlParser.py" />
+            </fileset>
+        </delete>
+    </target>
+</project>

@@ -15,8 +15,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# lib/
+# lib64/
 parts/
 sdist/
 var/
@@ -93,6 +93,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Eclipse project settings
+.project
+.pydevproject
 
 # mkdocs documentation
 /site
